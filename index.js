@@ -10155,6 +10155,10 @@ module.exports = (() => {
 		onBeforeRender: function () {},
 		onAfterRender: function () {},
 
+		onRenderEye: function () {}, // XXX
+		onBeforeRenderEye: function () {},
+		onAfterRenderEye: function () {},
+
 		applyMatrix: function ( matrix ) {
 
 			this.matrix.multiplyMatrices( matrix, this.matrix );
@@ -19896,10 +19900,12 @@ module.exports = (() => {
 		var cameraL = new PerspectiveCamera();
 		cameraL.bounds = new Vector4( 0.0, 0.0, 0.5, 1.0 );
 		cameraL.layers.enable( 1 );
+		cameraL.name = 'left'; // XXX
 
 		var cameraR = new PerspectiveCamera();
 		cameraR.bounds = new Vector4( 0.5, 0.0, 0.5, 1.0 );
 		cameraR.layers.enable( 2 );
+		cameraR.name = 'right';
 
 		var cameraVR = new ArrayCamera( [ cameraL, cameraR ] );
 		cameraVR.layers.enable( 1 );
@@ -19911,7 +19917,7 @@ module.exports = (() => {
 
 		function onVRDisplayPresentChange() {
 
-			if ( device.isPresenting ) {
+			if ( device && device.isPresenting ) { // XXX
 
 				var eyeParameters = device.getEyeParameters( 'left' );
 				var renderWidth = eyeParameters.renderWidth;
@@ -20391,6 +20397,7 @@ module.exports = (() => {
 			_currentScissorTest = null,
 
 			_currentViewport = new Vector4(),
+			_recursing = false, // XXX
 
 			//
 
@@ -20676,12 +20683,12 @@ module.exports = (() => {
 
 			var device = vr.getDevice();
 
-			if ( device && device.isPresenting ) {
+			/* if ( device && device.isPresenting ) { // XXX
 
 				console.warn( 'THREE.WebGLRenderer: Can\'t change size while VR device is presenting.' );
 				return;
 
-			}
+			} */
 
 			_width = width;
 			_height = height;
@@ -21349,9 +21356,9 @@ module.exports = (() => {
 
 			function onFrame() {
 
-				callback();
-
+if (callback() !== false) { // XXX
 				( vr.getDevice() || window ).requestAnimationFrame( onFrame );
+}
 
 			}
 
@@ -21386,7 +21393,29 @@ module.exports = (() => {
 
 				camera = vr.getCamera( camera );
 
-			}
+        if (camera.cameras && !_recursing) { // XXX
+          _recursing = true;
+
+          scene.onBeforeRenderEye();
+          scene.onRenderEye(camera.cameras[0]);
+          scene.onRenderEye(camera.cameras[1]);
+          scene.onAfterRenderEye();
+
+          _recursing = false;
+        }
+
+      } else {
+
+        if (!_recursing) {
+          _recursing = true;
+
+          scene.onBeforeRenderEye();
+          scene.onRenderEye(camera);
+          scene.onAfterRenderEye();
+
+          _recursing = false;
+        }
+      }
 
 			_projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
 			_frustum.setFromMatrix( _projScreenMatrix );
@@ -21959,6 +21988,10 @@ module.exports = (() => {
 
 				refreshMaterial = true;
 
+			}
+
+			if (material.volatile) { // XXX
+				refreshMaterial = true;
 			}
 
 			if ( refreshProgram || camera !== _currentCamera ) {
