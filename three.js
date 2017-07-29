@@ -21354,20 +21354,21 @@ module.exports = (() => {
 
 		this.animate = function ( callback ) {
 
-			var animationFrame; // XXX
+			var device = vr.getDevice() || window; // XXX
+			var animationFrame;
 
 			function onFrame() {
 
-				callback();
+				animationFrame = device.requestAnimationFrame( onFrame );
 
-				animationFrame = ( vr.getDevice() || window ).requestAnimationFrame( onFrame );
+				callback();
 
 			}
 
 			animationFrame = ( vr.getDevice() || window ).requestAnimationFrame( onFrame );
 
 			return function() {
-				( vr.getDevice() || window ).cancelAnimationFrame(animationFrame);
+				device.cancelAnimationFrame(animationFrame);
 			};
 
 		};
