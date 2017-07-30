@@ -21365,7 +21365,7 @@ module.exports = (() => {
 
 			}
 
-			animationFrame = ( vr.getDevice() || window ).requestAnimationFrame( onFrame );
+			animationFrame = device.requestAnimationFrame( onFrame );
 
 			return function() {
 				device.cancelAnimationFrame(animationFrame);
