@@ -10118,12 +10118,6 @@ module.exports = (() => {
 			scale: {
 				enumerable: true,
 				value: scale
-			},
-			modelViewMatrix: {
-				value: new Matrix4()
-			},
-			normalMatrix: {
-				value: new Matrix3()
 			}
 		} );
 
@@ -10132,6 +10126,9 @@ module.exports = (() => {
 
 		this.matrixAutoUpdate = Object3D.DefaultMatrixAutoUpdate;
 		this.matrixWorldNeedsUpdate = false;
+
+		this.modelViewMatrix = new Matrix4();
+		this.normalMatrix = new Matrix3();
 
 		this.layers = new Layers();
 		this.visible = true;
@@ -10158,6 +10155,9 @@ module.exports = (() => {
 		onRenderEye: function () {}, // XXX
 		onBeforeRenderEye: function () {},
 		onAfterRenderEye: function () {},
+
+		updateModelViewMatrix: function(camera) { this.modelViewMatrix.multiplyMatrices( camera.matrixWorldInverse, this.matrixWorld ); }, // XXX
+		updateNormalMatrix: function() { this.normalMatrix.getNormalMatrix( this.modelViewMatrix ); },
 
 		applyMatrix: function ( matrix ) {
 
@@ -21741,8 +21741,8 @@ module.exports = (() => {
 
 		function renderObject( object, scene, camera, geometry, material, group ) {
 
-			object.modelViewMatrix.multiplyMatrices( camera.matrixWorldInverse, object.matrixWorld );
-			object.normalMatrix.getNormalMatrix( object.modelViewMatrix );
+			object.updateModelViewMatrix(camera); // XXX
+			object.updateNormalMatrix(camera);
 
 			object.onBeforeRender( _this, scene, camera, geometry, material, group );
 
