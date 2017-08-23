@@ -10133,6 +10133,8 @@ module.exports = (() => {
 		this.layers = new Layers();
 		this.visible = true;
 
+		this.renderList = null; // XXX
+
 		this.castShadow = false;
 		this.receiveShadow = false;
 
@@ -16379,6 +16381,12 @@ module.exports = (() => {
 
 	function WebGLRenderList() {
 
+		var raw = []; // XXX
+		var rawLastIndex = - 1;
+
+		var rawTransparent = [];
+		var rawTransparentLastIndex = - 1;
+
 		var opaque = [];
 		var opaqueLastIndex = - 1;
 
@@ -16386,6 +16394,9 @@ module.exports = (() => {
 		var transparentLastIndex = - 1;
 
 		function init() {
+
+			rawLastIndex = - 1; // XXX
+			rawTransparentLastIndex = - 1;
 
 			opaqueLastIndex = - 1;
 			transparentLastIndex = - 1;
@@ -16398,7 +16409,21 @@ module.exports = (() => {
 
 			// allocate the next position in the appropriate array
 
-			if ( material.transparent ) {
+			if (object.renderList) { // XXX
+
+				if ( material.transparent ) {
+
+					array = rawTransparent;
+					index = ++ rawTransparentLastIndex;
+
+				} else {
+
+					array = raw;
+					index = ++ rawLastIndex;
+
+				}
+
+			} else if ( material.transparent ) {
 
 				array = transparent;
 				index = ++ transparentLastIndex;
@@ -16447,6 +16472,9 @@ module.exports = (() => {
 
 		function finish() {
 
+			raw.length = rawLastIndex + 1; // XXX
+			rawTransparent.length = rawTransparentLastIndex + 1;
+
 			opaque.length = opaqueLastIndex + 1;
 			transparent.length = transparentLastIndex + 1;
 
@@ -16454,12 +16482,18 @@ module.exports = (() => {
 
 		function sort() {
 
+			raw.sort( painterSortStable ); // XXX
+			rawTransparent.sort( reversePainterSortStable );
+
 			opaque.sort( painterSortStable );
 			transparent.sort( reversePainterSortStable );
 
 		}
 
 		return {
+			raw: raw, // XXX
+			rawTransparent: rawTransparent,
+
 			opaque: opaque,
 			transparent: transparent,
 
@@ -21481,6 +21515,9 @@ module.exports = (() => {
 
 			// render scene
 
+			var rawObjects = currentRenderList.raw; // XXX
+			var rawTransparentObjects = currentRenderList.rawTransparent;
+
 			var opaqueObjects = currentRenderList.opaque;
 			var transparentObjects = currentRenderList.transparent;
 
@@ -21488,16 +21525,58 @@ module.exports = (() => {
 
 				var overrideMaterial = scene.overrideMaterial;
 
+				if ( rawObjects.length ) { // XXX
+					if (camera.isArrayCamera) {
+						var cameras = camera.cameras;
+						for ( var i = 0, il = cameras.length; i < il; i ++ ) {
+							renderObjects( rawObjects, scene, cameras[i], overrideMaterial );
+						}
+					} else {
+						renderObjects( rawObjects, scene, camera, overrideMaterial );
+					}
+				}
 				if ( opaqueObjects.length ) renderObjects( opaqueObjects, scene, camera, overrideMaterial );
 				if ( transparentObjects.length ) renderObjects( transparentObjects, scene, camera, overrideMaterial );
+				if ( rawTransparentObjects.length ) { // XXX
+					if (camera.isArrayCamera) {
+						var cameras = camera.cameras;
+						for ( var i = 0, il = cameras.length; i < il; i ++ ) {
+							renderObjects( rawTransparentObjects, scene, cameras[i], overrideMaterial );
+						}
+					} else {
+						renderObjects( rawTransparentObjects, scene, camera, overrideMaterial );
+					}
+				}
 
 			} else {
 
 				// opaque pass (front-to-back order)
 
+				if ( rawObjects.length ) { // XXX
+					if (camera.isArrayCamera) {
+						var cameras = camera.cameras;
+						for ( var i = 0, il = cameras.length; i < il; i ++ ) {
+							renderObjects( rawObjects, scene, cameras[i] );
+						}
+					} else {
+						renderObjects( rawObjects, scene, camera );
+					}
+				}
+
 				if ( opaqueObjects.length ) renderObjects( opaqueObjects, scene, camera );
 
 				// transparent pass (back-to-front order)
+
+				if ( rawTransparentObjects.length ) { // XXX
+					if (camera.isArrayCamera) {
+						var cameras = camera.cameras;
+						for ( var i = 0, il = cameras.length; i < il; i ++ ) {
+							renderObjects( rawTransparentObjects, scene, cameras[i] );
+						}
+					} else {
+						renderObjects( rawTransparentObjects, scene, camera );
+					}
+				}
 
 				if ( transparentObjects.length ) renderObjects( transparentObjects, scene, camera );
 
@@ -21596,6 +21675,19 @@ module.exports = (() => {
 		function projectObject( object, camera, sortObjects ) {
 
 			if ( ! object.visible ) return;
+
+			if (object.renderList) { // XXX
+				for (var i = 0; i < object.renderList.length; i++) {
+					var renderListEntry = object.renderList[i];
+					var renderListEntryObject = renderListEntry.object;
+					var renderListEntryMaterial = renderListEntry.material;
+					var renderListEntryGroups = renderListEntry.groups;
+					for (var j = 0; j < renderListEntryGroups.length; j++) {
+						currentRenderList.push( renderListEntryObject, objects.update(renderListEntryObject), renderListEntryMaterial, 0, renderListEntryGroups[j] );
+					}
+				}
+				return;
+			}
 
 			var visible = object.layers.test( camera.layers );
 
@@ -21726,6 +21818,25 @@ module.exports = (() => {
 						}
 
 					}
+
+				} else if (camera.bounds) { // XXX
+
+					if (_currentArrayCamera !== camera) {
+						_currentArrayCamera = camera;
+
+						var bounds = camera.bounds;
+
+						var x = bounds.x * _width;
+						var y = bounds.y * _height;
+						var width = bounds.z * _width;
+						var height = bounds.w * _height;
+
+						_this.setViewport( x, y, width, height );
+						_this.setScissor( x, y, width, height );
+						_this.setScissorTest( true );
+					}
+
+					renderObject( object, scene, camera, geometry, material, group );
 
 				} else {
 
