@@ -20786,6 +20786,13 @@ module.exports = (() => {
 
 		};
 
+		this.updateAttribute = function (attribute, offset, count, index) { // XXX
+			attribute.version++;
+			attribute.updateRange.offset = offset;
+			attribute.updateRange.count = count;
+			attributes.update(attribute, index ? _gl.ELEMENT_ARRAY_BUFFER : _gl.ARRAY_BUFFER);
+		};
+
 		// Clearing
 
 		this.getClearColor = background.getClearColor;
