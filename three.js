@@ -7202,6 +7202,8 @@ module.exports = (() => {
 
 		onBeforeCompile: function () {},
 
+		uniformsNeedUpdate: function () { return true; }, // XXX
+
 		setValues: function ( values ) {
 
 			if ( values === undefined ) return;
@@ -22100,11 +22102,15 @@ module.exports = (() => {
 
 			}
 
+			var uniformsNeedUpdate = material.uniformsNeedUpdate(camera); // XXX
+
 			if ( material.id !== _currentMaterialId ) {
 
 				_currentMaterialId = material.id;
 
-				refreshMaterial = true;
+				if (uniformsNeedUpdate) { // XXX
+					refreshMaterial = true;
+				}
 
 			}
 
@@ -22329,9 +22335,11 @@ module.exports = (() => {
 
 			// common matrices
 
-			p_uniforms.setValue( _gl, 'modelViewMatrix', object.modelViewMatrix );
-			p_uniforms.setValue( _gl, 'normalMatrix', object.normalMatrix );
-			p_uniforms.setValue( _gl, 'modelMatrix', object.matrixWorld );
+			if (uniformsNeedUpdate) { // XXX
+				p_uniforms.setValue( _gl, 'modelViewMatrix', object.modelViewMatrix );
+				p_uniforms.setValue( _gl, 'normalMatrix', object.normalMatrix );
+				p_uniforms.setValue( _gl, 'modelMatrix', object.matrixWorld );
+			}
 
 			return program;
 
