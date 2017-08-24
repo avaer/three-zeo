@@ -22109,7 +22109,7 @@ module.exports = (() => {
 
 			}
 
-			var uniformsNeedUpdate = material.uniformsNeedUpdate(camera); // XXX
+			var uniformsNeedUpdate = material.uniformsNeedUpdate(camera, material); // XXX
 
 			if ( material.id !== _currentMaterialId ) {
 
