@@ -9534,6 +9534,7 @@ module.exports = (() => {
 			var buffer = gl.createBuffer();
 
 			gl.bindBuffer( bufferType, buffer );
+console.log('bufferdata 1', attribute.dynamic);
 			gl.bufferData( bufferType, array, usage );
 
 			attribute.onUploadCallback();
@@ -9592,9 +9593,11 @@ module.exports = (() => {
 
 			if ( attribute.dynamic === false ) {
 
+console.log('bufferdata 2', false);
 				gl.bufferData( bufferType, array, gl.STATIC_DRAW );
 
 			} else if ( updateRange.count === - 1 ) {
+console.log('buffer update all');
 
 				// Not using update ranges
 
@@ -9605,6 +9608,7 @@ module.exports = (() => {
 				console.error( 'THREE.WebGLObjects.updateBuffer: dynamic THREE.BufferAttribute marked as needsUpdate but updateRange.count is 0, ensure you are using set methods or updating manually.' );
 
 			} else {
+// console.log('buffer update some', updateRange.count);
 
 				gl.bufferSubData( bufferType, updateRange.offset * array.BYTES_PER_ELEMENT,
 					array.subarray( updateRange.offset, updateRange.offset + updateRange.count ) );
@@ -9661,11 +9665,20 @@ module.exports = (() => {
 
 		}
 
+    function clear( attribute, bufferType ) {
+			var data = buffers[ attribute.uuid ];
+			var usage = attribute.dynamic ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW;
+
+			gl.bindBuffer( bufferType, data.buffer );
+			gl.bufferData( bufferType, null, usage );
+		}
+
 		return {
 
 			get: get,
 			remove: remove,
-			update: update
+			update: update,
+			clear: clear
 
 		};
 
@@ -20793,6 +20806,10 @@ module.exports = (() => {
 			attributes.update(attribute, index ? _gl.ELEMENT_ARRAY_BUFFER : _gl.ARRAY_BUFFER);
 		};
 
+		this.clearAttribute = function (attribute, index) { // XXX
+			attributes.clear(attribute, index ? _gl.ELEMENT_ARRAY_BUFFER : _gl.ARRAY_BUFFER);
+		};
+
 		// Clearing
 
 		this.getClearColor = background.getClearColor;
@@ -21688,12 +21705,22 @@ module.exports = (() => {
 			if (object.renderList) { // XXX
 				for (var i = 0; i < object.renderList.length; i++) {
 					var renderListEntry = object.renderList[i];
-					var renderListEntryObject = renderListEntry.object;
-					var renderListEntryMaterial = renderListEntry.material;
-					var renderListEntryGroups = renderListEntry.groups;
-					for (var j = 0; j < renderListEntryGroups.length; j++) {
-						currentRenderList.push( renderListEntryObject, objects.update(renderListEntryObject), renderListEntryMaterial, 0, renderListEntryGroups[j] );
-					}
+
+          if (renderListEntry.visible) {
+            var renderListEntryObject = renderListEntry.object;
+
+            // objects.update(renderListEntryObject);
+
+            var renderListEntryGeometry = renderListEntry.geometry;
+
+            geometries.update(renderListEntryGeometry);
+
+            var renderListEntryMaterial = renderListEntry.material;
+            var renderListEntryGroups = renderListEntry.groups;
+            for (var j = 0; j < renderListEntryGroups.length; j++) {
+              currentRenderList.push( renderListEntryObject, renderListEntryGeometry, renderListEntryMaterial, 0, renderListEntryGroups[j] );
+            }
+          }
 				}
 				return;
 			}
