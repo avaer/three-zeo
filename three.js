@@ -21688,11 +21688,18 @@ module.exports = (() => {
 			if (object.renderList) { // XXX
 				for (var i = 0; i < object.renderList.length; i++) {
 					var renderListEntry = object.renderList[i];
-					var renderListEntryObject = renderListEntry.object;
-					var renderListEntryMaterial = renderListEntry.material;
-					var renderListEntryGroups = renderListEntry.groups;
-					for (var j = 0; j < renderListEntryGroups.length; j++) {
-						currentRenderList.push( renderListEntryObject, objects.update(renderListEntryObject), renderListEntryMaterial, 0, renderListEntryGroups[j] );
+
+					if (renderListEntry.visible) {
+						var renderListEntryObject = renderListEntry.object;
+						var renderListEntryGeometry = renderListEntry.geometry;
+
+						geometries.update(renderListEntryGeometry);
+
+						var renderListEntryMaterial = renderListEntry.material;
+						var renderListEntryGroups = renderListEntry.groups;
+						for (var j = 0; j < renderListEntryGroups.length; j++) {
+							currentRenderList.push(renderListEntryObject, renderListEntryGeometry, renderListEntryMaterial, 0, renderListEntryGroups[j]);
+						}
 					}
 				}
 				return;
