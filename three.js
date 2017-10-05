@@ -21467,6 +21467,8 @@ module.exports = (() => {
         }
       }
 
+      scene.onBeforeRender(); // XXX
+
 			_projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
 			_frustum.setFromMatrix( _projScreenMatrix );
 
@@ -21621,6 +21623,8 @@ module.exports = (() => {
 				vr.submitFrame();
 
 			}
+
+			scene.onAfterRender(); // XXX
 
 			// _gl.finish();
 
