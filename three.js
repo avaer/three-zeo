@@ -6732,7 +6732,7 @@ module.exports = (() => {
 			var fragmentShader = gl.createShader( gl.FRAGMENT_SHADER );
 			var vertexShader = gl.createShader( gl.VERTEX_SHADER );
 
-			var prefix = "precision " + renderer.getPrecision() + " float;\n";
+			var prefix = "#version 100\nprecision " + renderer.getPrecision() + " float;\n"; // XXX
 
 			gl.shaderSource( fragmentShader, prefix + shader.fragmentShader );
 			gl.shaderSource( vertexShader, prefix + shader.vertexShader );
@@ -7011,6 +7011,7 @@ module.exports = (() => {
 
 			gl.shaderSource( vertexShader, [
 
+				'#version 100', // XXX
 				'precision ' + renderer.getPrecision() + ' float;',
 
 				'#define SHADER_NAME ' + 'SpriteMaterial',
@@ -7051,6 +7052,7 @@ module.exports = (() => {
 
 			gl.shaderSource( fragmentShader, [
 
+				'#version 100', // XXX
 				'precision ' + renderer.getPrecision() + ' float;',
 
 				'#define SHADER_NAME ' + 'SpriteMaterial',
@@ -17338,6 +17340,7 @@ module.exports = (() => {
 
 			prefixVertex = [
 
+				'#version 100', // XXX
 				customDefines,
 
 				'\n'
@@ -17346,6 +17349,7 @@ module.exports = (() => {
 
 			prefixFragment = [
 
+				'#version 100', // XXX
 				customExtensions,
 				customDefines,
 
