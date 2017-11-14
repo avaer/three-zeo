@@ -17361,6 +17361,7 @@ module.exports = (() => {
 
 			prefixVertex = [
 
+				'#version 100', // XXX
 				'precision ' + parameters.precision + ' float;',
 				'precision ' + parameters.precision + ' int;',
 
@@ -17466,6 +17467,7 @@ module.exports = (() => {
 
 			prefixFragment = [
 
+				'#version 100', // XXX
 				customExtensions,
 
 				'precision ' + parameters.precision + ' float;',
