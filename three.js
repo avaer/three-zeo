@@ -2,7 +2,7 @@ if (typeof self === 'object' && typeof global === 'undefined') {
   self.module = {};
 }
 
-module.exports = (() => {
+module.exports = (function() {
   'use strict';
 
   const exports = {};
