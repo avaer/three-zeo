@@ -1,8 +1,11 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.THREE = {})));
-}(this, (function (exports) { 'use strict';
+if (typeof self === 'object' && typeof global === 'undefined') { // XXX
+	self.module = {};
+}
+
+module.exports = (function () { // XXX
+	'use strict';
+
+	var exports = {}; // XXX
 
 	// Polyfills
 
@@ -7211,7 +7214,7 @@
 			var fragmentShader = gl.createShader( gl.FRAGMENT_SHADER );
 			var vertexShader = gl.createShader( gl.VERTEX_SHADER );
 
-			var prefix = 'precision ' + capabilities.precision + ' float;\n';
+			var prefix = '#version 100\nprecision ' + capabilities.precision + ' float;\n'; // XXX
 
 			gl.shaderSource( fragmentShader, prefix + shader.fragmentShader );
 			gl.shaderSource( vertexShader, prefix + shader.vertexShader );
@@ -7495,6 +7498,7 @@
 
 			gl.shaderSource( vertexShader, [
 
+				'#version 100', // XXX
 				'precision ' + capabilities.precision + ' float;',
 
 				'#define SHADER_NAME ' + 'SpriteMaterial',
@@ -7537,6 +7541,7 @@
 
 			gl.shaderSource( fragmentShader, [
 
+				'#version 100', // XXX
 				'precision ' + capabilities.precision + ' float;',
 
 				'#define SHADER_NAME ' + 'SpriteMaterial',
@@ -7691,6 +7696,8 @@
 		isMaterial: true,
 
 		onBeforeCompile: function () {},
+
+		uniformsNeedUpdate: function () { return true; }, // XXX
 
 		setValues: function ( values ) {
 
@@ -10261,6 +10268,8 @@
 		this.layers = new Layers();
 		this.visible = true;
 
+		this.renderList = null; // XXX
+
 		this.castShadow = false;
 		this.receiveShadow = false;
 
@@ -10282,6 +10291,13 @@
 
 		onBeforeRender: function () {},
 		onAfterRender: function () {},
+
+		onRenderEye: function () {}, // XXX
+		onBeforeRenderEye: function () {},
+		onAfterRenderEye: function () {},
+
+		updateModelViewMatrix: function(camera) { this.modelViewMatrix.multiplyMatrices( camera.matrixWorldInverse, this.matrixWorld ); }, // XXX
+		updateNormalMatrix: function() { this.normalMatrix.getNormalMatrix( this.modelViewMatrix ); },
 
 		applyMatrix: function ( matrix ) {
 
@@ -16548,6 +16564,8 @@
 		var renderItems = [];
 		var renderItemsIndex = 0;
 
+		var raw = []; // XXX
+		var rawTransparent = [];
 		var opaque = [];
 		var transparent = [];
 
@@ -16555,6 +16573,8 @@
 
 			renderItemsIndex = 0;
 
+			raw.length = 0; // XXX
+			rawTransparent.length = 0;
 			opaque.length = 0;
 			transparent.length = 0;
 
@@ -16592,7 +16612,7 @@
 
 			}
 
-			( material.transparent === true ? transparent : opaque ).push( renderItem );
+			(object.renderList ? (material.transparent === true ? rawTransparent : raw) : (material.transparent === true ? transparent : opaque)).push(renderItem); // XXX
 
 			renderItemsIndex ++;
 
@@ -16600,12 +16620,16 @@
 
 		function sort() {
 
+			if ( raw.length > 1 ) raw.sort( painterSortStable ); // XXX
+			if ( rawTransparent.length > 1 ) rawTransparent.sort( painterSortStable );
 			if ( opaque.length > 1 ) opaque.sort( painterSortStable );
 			if ( transparent.length > 1 ) transparent.sort( reversePainterSortStable );
 
 		}
 
 		return {
+			raw: raw, // XXX
+			rawTransparent: rawTransparent,
 			opaque: opaque,
 			transparent: transparent,
 
@@ -17787,6 +17811,7 @@
 
 			prefixVertex = [
 
+				'#version 100', // XXX
 				customDefines
 
 			].filter( filterEmptyLine ).join( '\n' );
@@ -17799,6 +17824,7 @@
 
 			prefixFragment = [
 
+				'#version 100', // XXX
 				customExtensions,
 				customDefines
 
@@ -17814,6 +17840,7 @@
 
 			prefixVertex = [
 
+				'#version 100', // XXX
 				'precision ' + parameters.precision + ' float;',
 				'precision ' + parameters.precision + ' int;',
 
@@ -17919,6 +17946,7 @@
 
 			prefixFragment = [
 
+				'#version 100', // XXX
 				customExtensions,
 
 				'precision ' + parameters.precision + ' float;',
@@ -20671,10 +20699,12 @@
 		var cameraL = new PerspectiveCamera();
 		cameraL.bounds = new Vector4( 0.0, 0.0, 0.5, 1.0 );
 		cameraL.layers.enable( 1 );
+		cameraL.name = 'left'; // XXX
 
 		var cameraR = new PerspectiveCamera();
 		cameraR.bounds = new Vector4( 0.5, 0.0, 0.5, 1.0 );
 		cameraR.layers.enable( 2 );
+		cameraR.name = 'right'; // XXX
 
 		var cameraVR = new ArrayCamera( [ cameraL, cameraR ] );
 		cameraVR.layers.enable( 1 );
@@ -21301,6 +21331,7 @@
 			_currentViewport = new Vector4(),
 			_currentScissor = new Vector4(),
 			_currentScissorTest = null,
+			_recursing = false, // XXX
 
 			//
 
@@ -21548,12 +21579,12 @@
 
 			var device = vr.getDevice();
 
-			if ( device && device.isPresenting ) {
+			/* if ( device && device.isPresenting ) { // XXX
 
 				console.warn( 'THREE.WebGLRenderer: Can\'t change size while VR device is presenting.' );
 				return;
 
-			}
+			} */
 
 			_width = width;
 			_height = height;
@@ -21613,6 +21644,13 @@
 
 			state.setScissorTest( _scissorTest = boolean );
 
+		};
+
+		this.updateAttribute = function (attribute, offset, count, index) { // XXX
+			attribute.version++;
+			attribute.updateRange.offset = offset;
+			attribute.updateRange.count = count;
+			attributes.update(attribute, index ? _gl.ELEMENT_ARRAY_BUFFER : _gl.ARRAY_BUFFER);
 		};
 
 		// Clearing
@@ -22202,6 +22240,8 @@
 
 		var isAnimating = false;
 		var onAnimationFrame = null;
+		var deviceAnimationFrame = null; // XXX
+		var windowAnimationFrame = null;
 
 		function start() {
 
@@ -22211,11 +22251,11 @@
 
 			if ( device && device.isPresenting ) {
 
-				device.requestAnimationFrame( loop );
+				deviceAnimationFrame = device.requestAnimationFrame( loop ); // XXX
 
 			} else {
 
-				window.requestAnimationFrame( loop );
+				windowAnimationFrame = window.requestAnimationFrame( loop ); // XXX
 
 			}
 
@@ -22231,11 +22271,11 @@
 
 			if ( device && device.isPresenting ) {
 
-				device.requestAnimationFrame( loop );
+				decideAnimationFrame = device.requestAnimationFrame( loop ); // XXX
 
 			} else {
 
-				window.requestAnimationFrame( loop );
+				windowAnimationFrame = window.requestAnimationFrame( loop ); // XXX
 
 			}
 
@@ -22245,6 +22285,23 @@
 
 			onAnimationFrame = callback;
 			start();
+
+			return function() { // XXX
+				isAnimating = false;
+
+				if (deviceAnimationFrame !== null) {
+					var device = vr.getDevice();
+					if (device) {
+						device.cancelAnimationFrame(deviceAnimationFrame);
+					}
+
+					deviceAnimationFrame = null;
+				}
+				if (windowAnimationFrame !== null) {
+					window.cancelAnimationFrame(windowAnimationFrame);
+					windowAnimationFrame = null;
+				}
+			};
 
 		};
 
@@ -22279,7 +22336,32 @@
 
 				camera = vr.getCamera( camera );
 
+				if (camera.cameras && !_recursing) { // XXX
+					_recursing = true;
+
+					scene.onBeforeRenderEye();
+					scene.onRenderEye(camera.cameras[0]);
+					scene.onRenderEye(camera.cameras[1]);
+					scene.onAfterRenderEye();
+
+					_recursing = false;
+				}
+
+			} else {
+
+				if (!_recursing) { // XXX
+					_recursing = true;
+
+					scene.onBeforeRenderEye();
+					scene.onRenderEye(camera);
+					scene.onAfterRenderEye();
+
+					_recursing = false;
+				}
+
 			}
+
+			scene.onBeforeRender(); // XXX
 
 			_projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
 			_frustum.setFromMatrix( _projScreenMatrix );
@@ -22340,6 +22422,8 @@
 
 			// render scene
 
+			var rawObjects = currentRenderList.raw; // XXX
+			var rawTransparentObjects = currentRenderList.rawTransparent;
 			var opaqueObjects = currentRenderList.opaque;
 			var transparentObjects = currentRenderList.transparent;
 
@@ -22347,17 +22431,57 @@
 
 				var overrideMaterial = scene.overrideMaterial;
 
+				if ( rawObjects.length ) { // XXX
+					if (camera.isArrayCamera) {
+						var cameras = camera.cameras;
+						for ( var i = 0, il = cameras.length; i < il; i ++ ) {
+							renderObjects( rawObjects, scene, cameras[i], overrideMaterial );
+						}
+					} else {
+						renderObjects( rawObjects, scene, camera, overrideMaterial );
+					}
+				}
 				if ( opaqueObjects.length ) renderObjects( opaqueObjects, scene, camera, overrideMaterial );
+				if ( rawTransparentObjects.length ) { // XXX
+					if (camera.isArrayCamera) {
+						var cameras = camera.cameras;
+						for ( var i = 0, il = cameras.length; i < il; i ++ ) {
+							renderObjects( rawTransparentObjects, scene, cameras[i], overrideMaterial );
+						}
+					} else {
+						renderObjects( rawTransparentObjects, scene, camera, overrideMaterial );
+					}
+				}
 				if ( transparentObjects.length ) renderObjects( transparentObjects, scene, camera, overrideMaterial );
 
 			} else {
 
 				// opaque pass (front-to-back order)
 
+				if ( rawObjects.length ) { // XXX
+					if (camera.isArrayCamera) {
+						var cameras = camera.cameras;
+						for ( var i = 0, il = cameras.length; i < il; i ++ ) {
+							renderObjects( rawObjects, scene, cameras[i] );
+						}
+					} else {
+						renderObjects( rawObjects, scene, camera );
+					}
+				}
 				if ( opaqueObjects.length ) renderObjects( opaqueObjects, scene, camera );
 
 				// transparent pass (back-to-front order)
 
+				if ( rawTransparentObjects.length ) { // XXX
+					if (camera.isArrayCamera) {
+						var cameras = camera.cameras;
+						for ( var i = 0, il = cameras.length; i < il; i ++ ) {
+							renderObjects( rawTransparentObjects, scene, cameras[i] );
+						}
+					} else {
+						renderObjects( rawTransparentObjects, scene, camera );
+					}
+				}
 				if ( transparentObjects.length ) renderObjects( transparentObjects, scene, camera );
 
 			}
@@ -22388,6 +22512,8 @@
 				vr.submitFrame();
 
 			}
+
+			scene.onAfterRender(); // XXX
 
 			// _gl.finish();
 
@@ -22451,6 +22577,26 @@
 		function projectObject( object, camera, sortObjects ) {
 
 			if ( object.visible === false ) return;
+
+			if (object.renderList) { // XXX
+				for (var i = 0; i < object.renderList.length; i++) {
+					var renderListEntry = object.renderList[i];
+
+					if (renderListEntry.visible) {
+						var renderListEntryObject = renderListEntry.object;
+						var renderListEntryGeometry = renderListEntry.geometry;
+
+						geometries.update(renderListEntryGeometry);
+
+						var renderListEntryMaterial = renderListEntry.material;
+						var renderListEntryGroups = renderListEntry.groups;
+						for (var j = 0; j < renderListEntryGroups.length; j++) {
+							currentRenderList.push(renderListEntryObject, renderListEntryGeometry, renderListEntryMaterial, 0, renderListEntryGroups[j]);
+						}
+					}
+				}
+				return;
+			}
 
 			var visible = object.layers.test( camera.layers );
 
@@ -22586,6 +22732,25 @@
 
 					}
 
+				} else if (camera.bounds) { // XXX
+
+					if (_currentArrayCamera !== camera) {
+						_currentArrayCamera = camera;
+
+						var bounds = camera.bounds;
+
+						var x = bounds.x * _width;
+						var y = bounds.y * _height;
+						var width = bounds.z * _width;
+						var height = bounds.w * _height;
+
+						_this.setViewport( x, y, width, height );
+						_this.setScissor( x, y, width, height );
+						_this.setScissorTest( true );
+					}
+
+					renderObject( object, scene, camera, geometry, material, group );
+
 				} else {
 
 					_currentArrayCamera = null;
@@ -22599,6 +22764,9 @@
 		}
 
 		function renderObject( object, scene, camera, geometry, material, group ) {
+
+			object.updateModelViewMatrix( camera ); // XXX
+			object.updateNormalMatrix( camera );
 
 			object.onBeforeRender( _this, scene, camera, geometry, material, group );
 
@@ -22847,12 +23015,20 @@
 
 			}
 
+			var uniformsNeedUpdate = material.uniformsNeedUpdate(camera, material); // XXX
+
 			if ( material.id !== _currentMaterialId ) {
 
 				_currentMaterialId = material.id;
 
-				refreshMaterial = true;
+				if (uniformsNeedUpdate) { // XXX
+					refreshMaterial = true;
+				}
 
+			}
+
+			if (material.volatile) { // XXX
+				refreshMaterial = true;
 			}
 
 			if ( refreshProgram || camera !== _currentCamera ) {
@@ -23083,9 +23259,11 @@
 
 			// common matrices
 
-			p_uniforms.setValue( _gl, 'modelViewMatrix', object.modelViewMatrix );
-			p_uniforms.setValue( _gl, 'normalMatrix', object.normalMatrix );
-			p_uniforms.setValue( _gl, 'modelMatrix', object.matrixWorld );
+			if (uniformsNeedUpdate) { // XXX
+				p_uniforms.setValue( _gl, 'modelViewMatrix', object.modelViewMatrix );
+				p_uniforms.setValue( _gl, 'normalMatrix', object.normalMatrix );
+				p_uniforms.setValue( _gl, 'modelMatrix', object.matrixWorld );
+			}
 
 			return program;
 
@@ -45978,6 +46156,6 @@
 	exports.Projector = Projector;
 	exports.CanvasRenderer = CanvasRenderer;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+	return exports; // XXX
 
-})));
+})();
