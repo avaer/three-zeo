@@ -22271,7 +22271,7 @@ module.exports = (function () { // XXX
 
 			if ( device && device.isPresenting ) {
 
-				decideAnimationFrame = device.requestAnimationFrame( loop ); // XXX
+				deviceAnimationFrame = device.requestAnimationFrame( loop ); // XXX
 
 			} else {
 
