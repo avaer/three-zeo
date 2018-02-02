@@ -3640,6 +3640,8 @@ module.exports = (function () { // XXX
 		// update.  You need to explicitly call Material.needsUpdate to trigger it to recompile.
 		this.encoding = encoding !== undefined ? encoding : LinearEncoding;
 
+		this.externalIndex = null; // XXX
+
 		this.version = 0;
 		this.onUpdate = null;
 
@@ -18698,31 +18700,37 @@ module.exports = (function () { // XXX
 
 		function setTexture2D( texture, slot ) {
 
-			var textureProperties = properties.get( texture );
+			if (texture.externalIndex === null) { // XXX
 
-			if ( texture.version > 0 && textureProperties.__version !== texture.version ) {
+				var textureProperties = properties.get( texture );
 
-				var image = texture.image;
+				if ( texture.version > 0 && textureProperties.__version !== texture.version ) {
 
-				if ( image === undefined ) {
+					var image = texture.image;
 
-					console.warn( 'THREE.WebGLRenderer: Texture marked for update but image is undefined', texture );
+					if ( image === undefined ) {
 
-				} else if ( image.complete === false ) {
+						console.warn( 'THREE.WebGLRenderer: Texture marked for update but image is undefined', texture );
 
-					console.warn( 'THREE.WebGLRenderer: Texture marked for update but image is incomplete', texture );
+					} else if ( image.complete === false ) {
 
-				} else {
+						console.warn( 'THREE.WebGLRenderer: Texture marked for update but image is incomplete', texture );
 
-					uploadTexture( textureProperties, texture, slot );
-					return;
+					} else {
+
+						uploadTexture( textureProperties, texture, slot );
+						return;
+
+					}
 
 				}
 
+				state.activeTexture( _gl.TEXTURE0 + slot );
+				state.bindTexture( _gl.TEXTURE_2D, textureProperties.__webglTexture );
+			} else { // XXX
+				state.activeTexture( _gl.TEXTURE0 + slot );
+				state.bindTexture( _gl.TEXTURE_EXTERNAL_OES, texture.externalIndex );
 			}
-
-			state.activeTexture( _gl.TEXTURE0 + slot );
-			state.bindTexture( _gl.TEXTURE_2D, textureProperties.__webglTexture );
 
 		}
 
