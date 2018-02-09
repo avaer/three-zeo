@@ -10253,16 +10253,12 @@ module.exports = (function () { // XXX
 				enumerable: true,
 				value: scale
 			},
-			modelViewMatrix: {
-				value: new Matrix4()
-			},
-			normalMatrix: {
-				value: new Matrix3()
-			}
 		} );
 
 		this.matrix = new Matrix4();
 		this.matrixWorld = new Matrix4();
+		this.modelViewMatrix = new Matrix4(); // XXX
+		this.normalMatrix = new Matrix3();
 
 		this.matrixAutoUpdate = Object3D.DefaultMatrixAutoUpdate;
 		this.matrixWorldNeedsUpdate = false;
