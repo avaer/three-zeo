@@ -1,5 +1,5 @@
-if (typeof self === 'object' && typeof global === 'undefined') { // XXX
-	self.module = {};
+if (typeof module === 'undefined') { // XXX
+	module = {};
 }
 
 module.exports = (function () { // XXX
