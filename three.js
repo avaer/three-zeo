@@ -22756,6 +22756,8 @@ module.exports = (function () { // XXX
 
 					renderObject( object, scene, camera, geometry, material, group );
 
+					_this.setScissorTest( false );
+
 				} else {
 
 					_currentArrayCamera = null;
